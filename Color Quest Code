@@ -1,0 +1,266 @@
+##XynoTek Games##
+##By Ryan Roberts##
+
+pif = "player.png"
+osif = "orange_square.png"
+
+import sys
+import pygame
+import time
+
+pygame.init()
+
+white = (255,255,255)
+black = (0,0,0)
+red = (255,0,0)
+green = (0,255,0)
+blue = (0,0,255)
+
+display_width = 800
+display_height = 600
+
+show_coords = True
+show_bg = False
+
+gameDisplay = pygame.display.set_mode((display_width, display_height))
+pygame.display.set_caption("Colour Quest")
+
+icon = pygame.image.load("icon.png").convert_alpha()
+pygame.display.set_icon(icon)
+
+player = pygame.sprite.Sprite()
+player.image = pygame.image.load(pif).convert_alpha()
+player.rect = player.image.get_rect()
+player.rect.topleft = [0, 0]
+player.size = pygame.Surface.get_size(player.image)
+#print(player.size)
+player.x_size = player.size[0]
+player.y_size = player.size[1]
+#print(player.x_size)
+#print(player.y_size)
+
+orange_square = pygame.sprite.Sprite()
+orange_square.image = pygame.image.load(osif).convert_alpha()
+orange_square.rect = orange_square.image.get_rect()
+orange_square.rect.topleft = [0, 0]
+orange_square.size = pygame.Surface.get_size(orange_square.image)
+#print(orange_square.size)
+orange_square.x_size = orange_square.size[0]
+orange_square.y_size = orange_square.size[1]
+#print(orange_square.x_size)
+#print(orange_square.y_size)
+o_s_x = 300
+o_s_y = 100
+
+pygame.display.update()
+
+clock = pygame.time.Clock()
+FPS = 100
+
+smallfont = pygame.font.SysFont("comicsansms", 25)
+medfont = pygame.font.SysFont("comicsansms", 50)
+medlargefont = pygame.font.SysFont("comicsansms", 65)
+largefont = pygame.font.SysFont("comicsansms", 80)
+
+def pause():
+
+    paused = True
+
+    while paused:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_c:
+                    paused = False
+                if event.key == pygame.K_q:
+                    pygame.quit()
+                    quit()
+
+        gameDisplay.fill(white)
+        message_to_screen("Paused", black, -100, "large")
+        message_to_screen("Press C to continue or Q to quit.", black, 25)
+
+        pygame.display.update()
+        clock.tick()
+
+def gameIntro():
+    intro = True
+
+    while intro:
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_c:
+                    intro = False
+                if event.key == pygame.K_q:
+                    pygame.quit()
+                    quit()
+
+        
+        gameDisplay.fill(white)
+        message_to_screen("Welcome to Colour Quest", green, -100, "medlarge")
+        message_to_screen("The objective of the game is to complete quests", black, -30)
+        message_to_screen("The more quests you complete,", black, 10)
+        message_to_screen("your score goes up.", black, 50)
+        message_to_screen("Press C to play, P to pause or Q to quit.", black, 180)
+
+
+        pygame.display.update()
+        clock.tick(15)
+
+def text_objects(text, color, size):
+    if size == "small":
+        textSurf = smallfont.render(text, True, color)
+    elif size == "medium":
+        textSurf = medfont.render(text, True, color)
+    elif size == "large":
+        textSurf = largefont.render(text, True, color)
+    elif size == "medlarge":
+        textSurf = medlargefont.render(text, True, color)
+    return textSurf, textSurf.get_rect()
+
+def message_to_screen(msg, color, y_displace = 0, size = "small"):
+    textSurf, textRect = text_objects(msg, color, size)
+    textRect.center = (display_width/2), (display_height/2) + y_displace
+    gameDisplay.blit(textSurf, textRect)
+
+def gameLoop():
+    
+    gameExit = False
+    gameOver = False
+    inCutscene = False
+    
+    x = display_width/2-40
+    y = display_height/2-40
+
+    bg_x = 0
+    bg_y = 0
+    bg_coords = [0,0]
+    bg_coords_old = bg_coords
+    bg_amount = 2
+    bg_new = pygame.image.load("bg_0_0.png").convert()
+    
+    x_change = 0
+    y_change = 0
+
+    while not gameExit:
+
+        while gameOver == True:
+            pygame.display.update()
+
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_q:
+                        gameExit = True
+                        gameOver = False
+                    if event.key == pygame.K_c:
+                        gameLoop()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                gameExit = True
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    x_change = -5
+                elif event.key == pygame.K_RIGHT:
+                    x_change = 5
+                elif event.key == pygame.K_UP:
+                    y_change = -5
+                elif event.key == pygame.K_DOWN:
+                    y_change = 5
+
+                elif event.key == pygame.K_p:
+                    pause()
+
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
+                    x_change = 0
+                if event.key == pygame.K_UP or event.key == pygame.K_DOWN:
+                    y_change = 0
+
+        if x >= display_width:
+            if bg_x != bg_amount:
+                bg_x = bg_x + 1
+                bg_coords = [bg_x, bg_y]
+                x = -50 + 10
+        if x <= -50:
+            if bg_x != 0:
+                bg_x = bg_x - 1
+                bg_coords = [bg_x, bg_y]
+                x = display_width - 10
+        if y >= display_height:
+            if bg_y != bg_amount:
+                bg_y = bg_y + 1
+                bg_coords = [bg_x, bg_y]
+                y = -50 + 10
+        if y <= -50:
+            if bg_y != 0:
+                bg_y = bg_y - 1
+                bg_coords = [bg_x, bg_y]
+                y = display_height - 10
+
+
+
+##        if x >= display_width:
+##            if bg_x = bg_amount:
+##                bg_x = bg_x + 1
+##                bg_coords = [bg_x, bg_y]
+##                x = -50 + 10
+##        if x <= -50:
+##            if bg_x = 0:
+##                bg_x = bg_x - 1
+##                bg_coords = [bg_x, bg_y]
+##                x = display_width - 10
+##        if y >= display_height:
+##            if bg_y = bg_amount:
+##                bg_y = bg_y + 1
+##                bg_coords = [bg_x, bg_y]
+##                y = -50 + 10
+##        if y <= -50:
+##            if bg_y = 0:
+##                bg_y = bg_y - 1
+##                bg_coords = [bg_x, bg_y]
+##                y = display_height - 10
+
+        if bg_coords != bg_coords_old:
+            bg_new = pygame.image.load("bg_" + str(bg_x) + "_" +  str(bg_y) + ".png").convert()
+
+        bg_coords_old = bg_coords
+
+        y += y_change
+        x += x_change
+
+        gameDisplay.blit(bg_new, [0,0])
+
+        if bg_coords == [2, 2]:
+            gameDisplay.blit(orange_square.image, (o_s_x, o_s_y))
+
+            if x > o_s_x and x < o_s_x + orange_square.x_size or x + player.x_size > o_s_x and x + player.x_size < o_s_x + orange_square.x_size:
+                if y > o_s_y and y < o_s_y + orange_square.y_size or y + player.y_size > o_s_y and y + player.y_size < o_s_y + orange_square.y_size:
+                    message_to_screen("Can you help me out?", black, 0)
+
+        gameDisplay.blit(player.image, (x,y))
+
+        pygame.display.update()
+
+        if show_bg == True:
+            print(bg_coords)
+        if show_coords == True:
+            print(x, y)
+
+        
+
+        clock.tick(FPS)
+
+    pygame.quit()
+    sys.exit()
+
+gameIntro()
+gameLoop()
